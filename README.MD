@@ -6,12 +6,14 @@ The instructions asume basic knowledge on VM creation on the related Cloud provi
 
 ## PACKER SCRIPTS
 
-Packer Scripts are used to create consistent golden images accross infrastructure providers. The initial example creates an fresh image ready to be published through Citrix MCS.
+Packer Scripts are used to create consistent golden images accross infrastructure providers. The initial example creates an fresh image ready to be published through Citrix MCS. This approach use an Ansible playbook to patch the VM, install prerequisites and deploy the Citrix VDA software automatically. Currently this playbook installs Citrix VDA 2203CU4.
 
 ### Prerequisites
 
-1. Install Packer on your machine: https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli
-2. An active cloud account (AWS, Azure, GCP) with enough permissions to create services accounts.
+1. Install Packer in your machine: https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli
+2. Install Ansible in your machine: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
+3. An active cloud account (AWS, Azure, GCP) with enough permissions to create services accounts.
+4. Clone this repository locally to your machine
 
 ### AWS configuration
 
@@ -72,4 +74,26 @@ Packer Scripts are used to create consistent golden images accross infrastructur
 aws configure
 ```
 
-specify the Key, secret and region to use for the image creation.
+specify the Key, secret and region to use for the image creation. The default region used in the packer script is us-east-1. if you want to use a different region open `packer/aws/variables.pkr.hcl` and modify the `region` default variable value 5. move to the "aws" directory inside Packer
+
+```sh
+cd packer/aws
+```
+
+6. Run the packer build command to start the image building process.
+
+```sh
+packer build .
+```
+
+The process will take around 20 minutes to complete, the following tasks are performed through Packer and Ansible:
+
+- Create an EC2 instance in the specified region (us-east-1 by default) and wait to boot.
+- use the script detailed in `packer/aws/scripts/SetUpWinRM.ps1` as [user data script](https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ec2-windows-user-data.html) to configure and enable WinRM communicator to connect to the instance. More information about [WinRM](https://developer.hashicorp.com/packer/docs/communicators/winrm)
+- Wait for the instance to boot and WinRM to become available.
+- Connect to the instance and run the ansible playbook detailed in `packer/playbooks.golden_vda_provisioning.yml`
+- Run the playbook steps detailed before.
+- Shutdown the instance and create an AMI from it.
+- Clean up the environment.
+
+7. After the process finishes, you should expect to see an AMI in your AWS account with the format `$golden-image-aws-{{timestamp}}`, with `timestamp` being the creation time.
