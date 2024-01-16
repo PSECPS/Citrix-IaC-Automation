@@ -1,0 +1,58 @@
+- name: Installing Citrix VDA
+  hosts: all
+
+  tasks:
+    - name: Install all updates and reboot as many times as needed
+      win_updates:
+        category_names: "*"
+        reboot: true
+
+    - name: Install VDA Pre-Reqs
+      win_feature:
+        name:
+          - NET-Framework-45-Core
+          - Telnet-Client
+          - RDS-RD-Server
+          - Remote-Assistance
+        state: present
+      register: win_feature
+
+    - name: Reboot if features require
+      win_reboot:
+      when: win_feature.reboot_required
+
+    - name: Create directory structure
+      win_file:
+        path: C:\temp\
+        state: directory
+
+    - name: Download VDA installer
+      win_get_url:
+        url: https://camilomv.s3.us-east-2.amazonaws.com/VDAServerSetup_2203_4000.exe
+        dest: C:\temp\vdaInstaller.exe
+
+    - name: Install VDA
+      win_package:
+        path: C:\temp\vdaInstaller.exe
+        arguments: /components vda /quiet /mastermcsimage /xendesktopcloud /virtualmachine /enable_hdx_ports /enable_hdx_udp_ports /noreboot
+        state: present
+        expected_return_code: [0, 3, 3010]
+        creates_service: BrokerAgent
+      register: citrix_vda_command_result
+
+    - name: Reboot after VDA
+      win_reboot:
+      when: citrix_vda_command_result.changed
+
+    - name: Resume VDA Install
+      win_package:
+        path: C:\temp\vdaInstaller.exe
+        state: present
+        expected_return_code: [0, 3, 3010]
+        creates_service: BrokerAgent
+      when: citrix_vda_command_result.changed
+      register: vda_resume
+
+    - name: Reboot after vda install
+      win_reboot:
+      when: vda_resume.changed
