@@ -74,7 +74,9 @@ Packer Scripts are used to create consistent golden images accross infrastructur
 aws configure
 ```
 
-specify the Key, secret and region to use for the image creation. The default region used in the packer script is us-east-1. if you want to use a different region open `packer/aws/variables.pkr.hcl` and modify the `region` default variable value 5. move to the "aws" directory inside Packer
+Specify the Key, secret and region to use for the image creation. The default region used in the packer script is us-east-1. if you want to use a different region open `packer/aws/variables.pkr.hcl` and modify the `region` default variable value.
+
+5. move to the "aws" directory inside Packer
 
 ```sh
 cd packer/aws
@@ -91,7 +93,7 @@ The process will take around 20 minutes to complete, the following tasks are per
 - Create an EC2 instance in the specified region (us-east-1 by default) and wait to boot.
 - use the script detailed in `packer/aws/scripts/SetUpWinRM.ps1` as [user data script](https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ec2-windows-user-data.html) to configure and enable WinRM communicator to connect to the instance. More information about [WinRM](https://developer.hashicorp.com/packer/docs/communicators/winrm)
 - Wait for the instance to boot and WinRM to become available.
-- Connect to the instance and run the ansible playbook detailed in `packer/playbooks.golden_vda_provisioning.yml`
+- Connect to the instance and run the ansible playbook detailed in `packer/playbooks/golden_vda_provisioning.yml`
 - Run the playbook steps detailed before.
 - Shutdown the instance and create an AMI from it.
 - Clean up the environment.
