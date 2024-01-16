@@ -1,39 +1,32 @@
-variable "ami_prefix" {
-  type    = string
-  default = "citrix-golden"
+
+variable "client_id" {
+  type        = string
+  description = "Azure Service Principal App ID."
+  sensitive   = true
 }
 
-variable "region" {
-  type    = string
-  default = "us-east-1"
+variable "client_secret" {
+  type        = string
+  description = "Azure Service Principal Secret."
+  sensitive   = true
 }
 
-variable "instance_type" {
-  type    = string
-  default = "t2.large"
+variable "subscription_id" {
+  type        = string
+  description = "Azure Subscription ID."
+  sensitive   = true
 }
 
-variable "ami_regions" {
-  type    = list(string)
-  default = ["us-east-2"]
+variable "tenant_id" {
+  type        = string
+  description = "Azure Tenant ID."
+  sensitive   = true
 }
 
 variable "winrm_username" {
   type    = string
-  default = "Administrator"
+  default = "packer"
 }
-
-
-variable "tags" {
-  type = map(string)
-  default = {
-    "Name"        = "GoldenImage"
-    "Environment" = "Dev"
-    "Release"     = "Latest"
-    "Created-by"  = "Packer"
-  }
-}
-
 locals {
   timestamp = regex_replace(timestamp(), "[- TZ:]", "")
 }

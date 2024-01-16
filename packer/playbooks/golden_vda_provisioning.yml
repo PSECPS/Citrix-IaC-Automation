@@ -7,20 +7,6 @@
         category_names: "*"
         reboot: true
 
-    - name: Install VDA Pre-Reqs
-      win_feature:
-        name:
-          - NET-Framework-45-Core
-          - Telnet-Client
-          - RDS-RD-Server
-          - Remote-Assistance
-        state: present
-      register: win_feature
-
-    - name: Reboot if features require
-      win_reboot:
-      when: win_feature.reboot_required
-
     - name: Create directory structure
       win_file:
         path: C:\temp\
