@@ -1,5 +1,5 @@
 source "googlecompute" "golden" {
-  project_id     = "my-lab-401523"
+  project_id     = var.project_id
   source_image   = "windows-server-2022-dc-v20240111"
   zone           = "us-central1-a"
   disk_size      = 50
