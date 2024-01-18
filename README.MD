@@ -98,4 +98,29 @@ The process will take around 20 minutes to complete, the following tasks are per
 - Shutdown the instance and create an AMI from it.
 - Clean up the environment.
 
-7. After the process finishes, you should expect to see an AMI in your AWS account with the format `$golden-image-aws-{{timestamp}}`, with `timestamp` being the creation time.
+7. After the process finishes, you should expect to see an AMI in your AWS account with the format `golden-image-aws-{{timestamp}}`, with `timestamp` being the creation time. This image is ready to be used as a golden image with Citrix MCS. 
+
+### Azure Configuration
+1. Create a Service Principal with `contributor` access to the subscription where you want to deploy the image
+2. Create a Secret for the Principal and save the secret value. 
+3. move to the "azure" directory inside Packer
+
+```sh
+cd packer/azure
+```
+4. run the packer build command specifying the `client_id`, `client_secret`, `subscription_id` and `tenant_id` for the service principal authentication
+
+```sh
+packer build -var client_id={CLIENT_ID} -var client_secret={CLIENT_SECRET} -var subscription_id={SUBSCRIPTION_ID} -var tenant_id={TENANT_ID}
+```
+
+The process will take around 20 minutes to complete, the following tasks are performed through Packer and Ansible:
+- Creates a resource group named "packer_images"
+- Creates a VM instance in the resource group using the `win11-22h2-avd` image with the `Standard_D2s_v4` instance size. This is hardcoded right now but can be modified in the file located in `packer/azure/azure-windows.pkr.hcl`. For the purpose of the example it is recommended to keep the current config. 
+- Waits for the instance to book and WinRM to become available. 
+- Connects to the instance and run the ansible playbook detailed in `packer/playbooks/golden_vda_provisioning.yml`
+- Runs the playbook steps detailed before.
+- Shutdown the instance and create an Image from it.
+- Clean up the environment.
+
+7. After the process finishes, you should expect to see an Image in your Azure account with the format `packer-azure-{{timestamp}}`, with `timestamp` being the creation time. This image is ready to be used as a golden image with Citrix MCS. 
